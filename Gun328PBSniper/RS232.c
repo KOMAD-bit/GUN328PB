@@ -2,7 +2,7 @@
  * RS232.c
  *
  * Created: 22/07/2022 17:03:24
- *  Author: Katharina Böhm-Klamt
+ *  Author: Katharina Bï¿½hm-Klamt
  */ 
 #include "RS232.h"
 #define IRcomm_on()  TCCR1B = ( (1<<WGM12) | (1<<CS10) )
@@ -11,7 +11,7 @@
 #define IRcomm_off() TCCR1B = ( (1<<WGM12) | (1<<CS10) )
 
 
-// die 4 byte codes sind nur gültig, wenn count >= 4
+// die 4 byte codes sind nur gï¿½ltig, wenn count >= 4
 #define RX_BUFFER_SIZE 64
 #define RX_BUFFER_MASK ( RX_BUFFER_SIZE-1 )
 #define RX_BUFFER_EMPTY 1
@@ -48,7 +48,7 @@ ISR(USART0_RX_vect)
 		rx_buffer.ind_write = next;
 		rx_buffer.cnt ++;
 	}
-	else next = UDR0;  // skip byte on error - unbedingt auslesen, sonst hängt sich RS232 bei Error ewig in INT auf!		
+	else next = UDR0;  // skip byte on error - unbedingt auslesen, sonst hï¿½ngt sich RS232 bei Error ewig in INT auf!		
 }
 
 uint8_t RX_GetNext(uint8_t* in)
@@ -103,7 +103,7 @@ uint8_t RX_GetNextCommand(uint8_t* cmd, uint8_t* id, uint8_t* val)
 					RX_GetNext(id);
 					RX_GetNext(val);
 					RX_GetNext(&chksum);
-					return 0;	//gültige Werte !
+					return 0;	//gï¿½ltige Werte !
 				}
 			}
 		}
@@ -135,27 +135,27 @@ struct USART_buffer
 
 	// Testwert in Buffer schreiben
 	#ifdef DEBUG_STUDIO
-	void RXPush(uint8_t val)
-	{
-		uint8_t next = ( rx_buffer.ind_write+1 ) & RX_BUFFER_MASK;
-		{
-			if (next == rx_buffer.ind_read)  
-			{
-				rx_buffer.ind_read = rx_buffer.ind_read_1;		// alle anderen +1
-				rx_buffer.ind_read_1 = rx_buffer.ind_read_2;	// alle anderen +1
-				rx_buffer.ind_read_2 = rx_buffer.ind_read_3;	// alle anderen +1
-				rx_buffer.ind_read_3 = rx_buffer.ind_read_4;	// alle anderen +1
-				rx_buffer.ind_read_4 = rx_buffer.ind_read_5;	// alle anderen +1
-				rx_buffer.ind_read_5 = rx_buffer.ind_read_6;	// alle anderen +1
-				rx_buffer.ind_read_6 = rx_buffer.ind_read_7;	// alle anderen +1
-				rx_buffer.ind_read_7 = ( rx_buffer.ind_read_7+1)  & RX_BUFFER_MASK;
-				rx_buffer.cnt--;	// ein Wert weniger da anschliessend immer ein inc erfolgt
-			}
-			rx_buffer.data[rx_buffer.ind_write]= val;
-			rx_buffer.ind_write = next;
-			rx_buffer.cnt ++;
-		}
-	}
+    #define PROTOCOL_LENGTH 8
+
+    void RXPush(uint8_t val)
+    {
+        ENTER_CRITICAL();
+        uint8_t next = (rx_buffer.ind_write + 1) & RX_BUFFER_MASK;
+        if (next == rx_buffer.ind_read)
+        {
+            uint8_t *read_indices = (uint8_t *)&rx_buffer.ind_read;
+            for (int i = 0; i < PROTOCOL_LENGTH - 1; i++)
+            {
+                read_indices[i] = read_indices[i + 1];
+            }
+            read_indices[PROTOCOL_LENGTH - 1] = (read_indices[PROTOCOL_LENGTH - 1] + 1) & RX_BUFFER_MASK;
+            rx_buffer.cnt--;   // adjust count after shifting
+        }
+        rx_buffer.data[rx_buffer.ind_write] = val;
+        rx_buffer.ind_write = next;
+        rx_buffer.cnt++;
+        EXIT_CRITICAL();
+    }
 	#endif
 	
 	// USART Receiver interrupt service routine
@@ -229,11 +229,11 @@ struct USART_buffer
 	{
 		uint8_t chk_ff_0;
 		
-		if (rx_buffer.cnt>=8) // ev wieder auf while ändern
+		if (rx_buffer.cnt>=8) // ev wieder auf while ï¿½ndern
 		{
 			if (!RX_GetNext(&chk_ff_0)) // sollte passen, da cnt>=4 abgefragt wurde
 			{
-				// 1. byte auf gültges cmd überprüfen
+				// 1. byte auf gï¿½ltges cmd ï¿½berprï¿½fen
 				// HHHH.HCCC : 5 bits Header 3 bits command
 				if ( chk_ff_0  == 0xff )		// obere 5 bytes = Header
 				{
@@ -253,7 +253,7 @@ struct USART_buffer
 									RX_GetNext(&chk_ff_0); // skip !id
 									RX_GetNext(&(serial_in->val));
 									RX_GetNext(&chk_ff_0); // skip !val
-									return 0;	//gültige Werte !
+									return 0;	//gï¿½ltige Werte !
 								} // val = !val								
 							} // id = !id			
 						}	// cmd = ! cmd		
@@ -284,7 +284,7 @@ ISR(USART0_TX_vect)
 {
 	if (tx_buffer.ind_write != tx_buffer.ind_read) // buffer not empty
 	{
-		UDR0 = tx_buffer.data[tx_buffer.ind_read];						// nächstes byte holen
+		UDR0 = tx_buffer.data[tx_buffer.ind_read];						// nï¿½chstes byte holen
 		tx_buffer.ind_read = ( tx_buffer.ind_read+1) & TX_BUFFER_MASK;	// inc buffer read
 	}
 	else
@@ -308,7 +308,7 @@ void TX_SendChar(uint8_t c)
 	cli();	// interruptssperren
 	IRcomm_on();
 	IRon();
-	if ((tx_buffer.ind_write != tx_buffer.ind_read) || ((UCSR0A & (1<<UDRE0) )==0))	// Wenn daten im Buffer oder in RS232 dann an nächste Bufferstelle schrieben
+	if ((tx_buffer.ind_write != tx_buffer.ind_read) || ((UCSR0A & (1<<UDRE0) )==0))	// Wenn daten im Buffer oder in RS232 dann an nï¿½chste Bufferstelle schrieben
 	{
 		tx_buffer.data[tx_buffer.ind_write]=c;
 		tx_buffer.ind_write = ( tx_buffer.ind_write+1 ) & TX_BUFFER_MASK;
