@@ -326,24 +326,24 @@ void admin(){
 	drawBufferPage(bufferpage, 0xB4, 0x12, 64, 0);
 	
 }
-void magazin(uint8_t magazinnumberi) {
-    memset(bufferpagea, 0x00, sizeof(bufferpagea));
-    
-    if (magazinnumberi == 0) {
-        drawBufferPage(bufferpagea, 0xB0, 0x10, 50, 0);
-        drawBufferPage(bufferpagea, 0xB1, 0x10, 50, 0);
-        return;
-    }
-    
-    for (int i = 1, count = 0; count < magazinnumberi; i += 4, count++) {
-        bufferpagea[i] = 0xFF;
-        bufferpagea[i + 1] = 0xFF;
-    }
-    
-    drawBufferPage(bufferpagea, 0xB0, 0x10, 50, 0);
-    drawBufferPage(bufferpagea, 0xB1, 0x10, 50, 0);
+void magazin(uint8_t magazinnumber){
+	for(int i =0; i<64; i++){
+		bufferpagea[i]=0x00;
+	}
+	int j =0; 
+	int k= 0;
+	for (int i = 1; i < magazinnumber+1; i++)
+	{
+		uint8_t set = i * 2 + k;
+		k=k+2;
+		bufferpagea[set]=0xFF;
+		bufferpagea[set-1]= 0xFF;
+			/* code */
+	}
+	drawBufferPage(bufferpagea, 0xB0, 0x10,50,0);
+	drawBufferPage(bufferpagea, 0xB1, 0x10,50,0);
+	
 }
-
 void batalert(){
 	
 	for(int i =0 ; i<64; i++){
