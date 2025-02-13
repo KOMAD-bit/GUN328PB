@@ -1,9 +1,8 @@
-/*
- * twimaster.c
- *
- * Created: 22/07/2022 17:04:00
- *  Author: Katharina Böhm-Klamt
- */ 
+ // twimaster.c
+ // Created: 22/07/2022 17:04:00
+ //  Author: Katharina Bï¿½hm-Klamt
+ //
+
 #include <inttypes.h>
 #include <compat/twi.h>
 #include "twimaster.h"
@@ -31,30 +30,29 @@ signed char i2c_start(unsigned char address)
 {
     uint8_t   twst;
 
-	// send START condition
-	TWCR0 = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
+    // send START condition
+    TWCR0 = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);
 
-	// wait until transmission completed
-	while(!(TWCR0 & (1<<TWINT)));
+    // wait until transmission completed
+    while(!(TWCR0 & (1<<TWINT)));
 
-	// check value of TWI Status Register. Mask prescaler bits.
-	twst = TW_STATUS & 0xF8;
-	if ( (twst != TW_START) && (twst != TW_REP_START)) return 2;
+    // check value of TWI Status Register. Mask prescaler bits.
+    twst = TWSR0 & 0xF8;
+    if ( (twst != TW_START) && (twst != TW_REP_START)) return 2;
 
-	// send device address
-	TWDR0 = address;
-	TWCR0 = (1<<TWINT) | (1<<TWEN);
+    // send device address
+    TWDR0 = address;
+    TWCR0 = (1<<TWINT) | (1<<TWEN);
 
-	// wail until transmission completed and ACK/NACK has been received
-	while(!(TWCR0 & (1<<TWINT)));
+    // wail until transmission completed and ACK/NACK has been received
+    while(!(TWCR0 & (1<<TWINT)));
 
-	// check value of TWI Status Register. Mask prescaler bits.
-	twst = TW_STATUS & 0xF8;
-	if ( (twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK) ) return 1;
+    // check value of TWI Status Register. Mask prescaler bits.
+    twst = TWSR0 & 0xF8;
+    if ( (twst != TW_MT_SLA_ACK) && (twst != TW_MR_SLA_ACK) ) return 1;
 
-	return 0;
-
-}/* i2c_start */
+    return 0;
+}
 
 
 void i2c_start_wait(unsigned char address)
@@ -69,7 +67,7 @@ void i2c_start_wait(unsigned char address)
 
     	while(!(TWCR0 & (1<<TWINT)));
     
-    	twst = TW_STATUS & 0xF8;
+    	twst = TWSR0 & 0xF8;
     	if ( (twst != TW_START) && (twst != TW_REP_START)) continue;
     
     	// send device address
@@ -79,7 +77,7 @@ void i2c_start_wait(unsigned char address)
     	// wail until transmission completed
     	while(!(TWCR0 & (1<<TWINT)));
     
-    	twst = TW_STATUS & 0xF8;
+    	twst = TWSR0 & 0xF8;
     	if ( (twst == TW_MT_SLA_NACK )||(twst ==TW_MR_DATA_NACK) ) 
     	{    	    
 	        TWCR0 = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
@@ -120,7 +118,7 @@ unsigned char i2c_write( unsigned char data )
 	// wait until transmission completed
 	while(!(TWCR0 & (1<<TWINT))); 
 
-	twst = TW_STATUS & 0xF8;
+	twst = TWSR0 & 0xF8;
 	if( twst != TW_MT_DATA_ACK) return 1;
 	return 0;
 

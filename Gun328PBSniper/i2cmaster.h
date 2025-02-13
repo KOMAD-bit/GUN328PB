@@ -2,15 +2,9 @@
 #define _I2CMASTER_H
 /************************************************************************* 
 
-* Author:  Katharina Böhm-Klamt
+* Author:  Katharina Bï¿½hm-Klamt
 
 **************************************************************************/
-
-
-
-#if (__GNUC__ * 100 + __GNUC_MINOR__) < 304
-#error "This library requires AVR-GCC 3.4 or later, update to newer AVR-GCC compiler !"
-#endif
 
 #include <avr/io.h>
 
@@ -55,4 +49,4 @@ extern unsigned char i2c_read(unsigned char ack);
 
 
 /**@}*/
-#endif
+#endif // _I2CMASTER_H

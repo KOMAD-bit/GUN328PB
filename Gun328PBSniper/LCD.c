@@ -6,6 +6,10 @@
  */ 
 #include "LCD.h"
 #include "twimaster.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #define  DevSSD1306 0x78
 //#define DevSSD1306 0x3c
@@ -34,56 +38,59 @@ static	uint16_t herzoben  [13]=	{0xE0, 0xF8, 0xFC, 0xFC, 0xF8, 0xF0, 0xE0, 0xF0,
 static	uint16_t herzunten [13]=	{0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x1F, 0x0F, 0x07, 0x03, 0x01, 0x00};
 uint16_t bufferherz[13]=	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ,0x00, 0x00};
 
-#include <stdint.h>
 
 #define BUFFP_SIZE         256         // Maximum number of elements in buffp
 #define DISPLAY_RAM_CMD    0x40        // Command to set display RAM start line
 #define I2C_FAST_TWBR      10          // Fast I2C bit rate setting
 
-void drawBufferPage(uint16_t *buffp, int lcdPage, int colPosition, size_t endIndex, size_t startIndex) {
-    // Start I2C transmission: set device address and write mode.
-    unsigned char ret = i2c_start(DevSSD1306 + I2C_WRITE);
-    if (ret) {
-        i2c_stop();
-        return;
-    } else {
-        // Configure I2C communication for LCD operation.
-        setup_i2c();
-        ret = i2c_write(lcdPage);       // Set the active LCD page.
-        if (ret) {
-            i2c_stop();
-            return;
-        }
-        ret = i2c_write(colPosition);   // Set the starting column (high byte).
-        if (ret) {
-            i2c_stop();
-            return;
-        }
-        ret = i2c_write(DISPLAY_RAM_CMD);   // Initialize the display RAM command.
-        if (ret) {
-            i2c_stop();
-            return;
-        }
-        uint8_t twbrbackup = TWBR0;
-        TWBR0 = I2C_FAST_TWBR;
 
-        // Combine all I2C writes into a single transmission.
-        for (size_t i = startIndex; i < endIndex; i++) {
-            // Boundary check to ensure we do not exceed the buffer size.
-            if (i >= BUFFP_SIZE) {
-                break;
-            }
-            ret = i2c_write(buffp[i]);
-            if (ret) {
-                i2c_stop();
-                TWBR0 = twbrbackup;
-                return;
-            }
-        }
-        i2c_stop();
-        TWBR0 = twbrbackup;
-    }
-}
+void drawBufferPage(const uint16_t *buffp, uint8_t lcdPage, uint8_t colPosition, size_t endIndex, size_t startIndex) {
+    unsigned char ret = i2c_start(DevSSD1306 + I2C_WRITE);//-
+    if (ret) {//-
+        i2c_stop();//-
+        return;//-
+    } else {//-
+        // Configure I2C communication for LCD operation.//-
+        setup_i2c();//-
+        ret = i2c_write(lcdPage);       // Set the active LCD page.//-
+        if (ret) {//-
+            i2c_stop();//-
+            return;//-
+        }//-
+        ret = i2c_write(colPosition);   // Set the starting column (high byte).//-
+        if (ret) {//-
+            i2c_stop();//-
+            return;//-
+        }//-
+        ret = i2c_write(DISPLAY_RAM_CMD);   // Initialize the display RAM command.//-
+        if (ret) {//-
+            i2c_stop();//-
+            return;//-
+        }//-
+        uint8_t twbrbackup = TWBR0;//-
+        TWBR0 = I2C_FAST_TWBR;//-
+//-
+        // Combine all I2C writes into a single transmission.//-
+        for (size_t i = startIndex; i < endIndex; i++) {//-
+            // Boundary check to ensure we do not exceed the buffer size.//-
+            if (i >= BUFFP_SIZE) {//-
+                break;//-
+            }//-
+            ret = i2c_write(buffp[i]);//-
+            if (ret) {//-
+                i2c_stop();//-
+                TWBR0 = twbrbackup;//-
+                return;//-
+            }//-
+        }//-
+        i2c_stop();//-
+        TWBR0 = twbrbackup;//-
+        }   //-
+
+
+}   //-// Function body remains the same
+
+
 
 void cleardisplay(void) {
     // Clear the buffer page by setting all 64 elements to 0x00
@@ -127,7 +134,10 @@ void verticalline(int x, int y){
 }
 
 void position1(int dez, int leftstart, int leftend, int rightstart, int rightend, int fulll, int fullr, int position) {
-    if (fulll < 0 || fullr >= BUFFP_SIZE) return; // Sicherheitsprüfung
+    if (fulll < 0 || fullr >= BUFFP_SIZE)
+    {
+        return; // Sicherheitsprüfung
+    }
 
     int pos = (position == 0x10 || position == 0x12) ? 64 : 44;
 
@@ -141,20 +151,46 @@ void position1(int dez, int leftstart, int leftend, int rightstart, int rightend
     bool right_bottom = dez != 2;
 
     clearbuffer(fulll, fullr);
-    
-    if (top) horizontalline(leftend, rightstart), drawBufferPage(bufferpage, 0xB2, position, pos, 0);
-    if (middle) horizontalline(leftend, rightstart), drawBufferPage(bufferpage, 0xB4, position, pos, 0);
-    if (bottom) horizontalline(leftend, rightstart), drawBufferPage(bufferpage, 0xB7, position, pos, 0);
-    
-    if (left_top) verticalline(leftstart, leftend), drawBufferPage(bufferpage, 0xB3, position, pos, 0);
-    if (left_bottom) verticalline(leftstart, leftend), drawBufferPage(bufferpage, 0xB6, position, pos, 0);
-    
-    if (right_top) verticalline(rightstart, rightend), drawBufferPage(bufferpage, 0xB5, position, pos, 0);
-    if (right_bottom) verticalline(rightstart, rightend), drawBufferPage(bufferpage, 0xB6, position, pos, 0);
+
+    if (top)
+    {
+        horizontalline(leftend, rightstart), drawBufferPage(bufferpage, 0xB2, position, pos, 0);
+    }
+    if (middle)
+    {
+        horizontalline(leftend, rightstart), drawBufferPage(bufferpage, 0xB4, position, pos, 0);
+    }
+    if (bottom)
+    {
+        horizontalline(leftend, rightstart), drawBufferPage(bufferpage, 0xB7, position, pos, 0);
+    }
+
+    if (left_top)
+    {
+        verticalline(leftstart, leftend), drawBufferPage(bufferpage, 0xB3, position, pos, 0);
+    }
+    if (left_bottom)
+    {
+        verticalline(leftstart, leftend), drawBufferPage(bufferpage, 0xB6, position, pos, 0);
+    }
+
+    if (right_top)
+    {
+        verticalline(rightstart, rightend), drawBufferPage(bufferpage, 0xB5, position, pos, 0);
+    }
+    if (right_bottom)
+    {
+        verticalline(rightstart, rightend), drawBufferPage(bufferpage, 0xB6, position, pos, 0);
+    }
 }
 
+
+
 void digitdraw(int munitionenergy) {
-    if (munitionenergy < 0) return;  // Sicherheitsprüfung
+    if (munitionenergy < 0)
+    {
+        return; // Sicherheitsprüfung
+    }
 
     int hunni = munitionenergy / 100;
     int zehner = (munitionenergy / 10) % 10;

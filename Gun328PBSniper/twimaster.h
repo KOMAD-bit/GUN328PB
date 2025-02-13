@@ -2,7 +2,7 @@
  * twimaster.h
  *
  * Created: 22/07/2022 17:03:48
- *  Author: Katharina Böhm-Klamt
+ *  Author: Katharina Bï¿½hm-Klamt
  */ 
 
 
@@ -13,17 +13,7 @@
 #include <avr/io.h>
 
 
-#ifdef DOXYGEN
 
-#endif /* DOXYGEN */
-
-/**@{*/
-
-#if (__GNUC__ * 100 + __GNUC_MINOR__) < 304
-#error "This library requires AVR-GCC 3.4 or later, update to newer AVR-GCC compiler !"
-#endif
-
-#include <avr/io.h>
 
 #define I2C_READ    1
 

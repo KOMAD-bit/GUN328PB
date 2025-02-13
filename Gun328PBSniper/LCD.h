@@ -2,7 +2,7 @@
  * LCD.h
  *
  * Created: 22/07/2022 17:02:55
- *  Author: Katharina Böhm-Klamt
+ *  Author: Katharina Bï¿½hm-Klamt
  */ 
 
 #include <inttypes.h>
@@ -12,7 +12,7 @@
 
 
 
-extern void drawBufferPage(uint16_t *buffp, int page, int position, int ende, int start); // draw one Bufferpage
+extern void drawBufferPage(const uint16_t *buffp, uint8_t lcdPage, uint8_t colPosition, size_t endIndex, size_t startIndex); // draw one Bufferpage
 extern void cleardisplay(); // clear Display
 extern void clearbuffer(int x, int y); // clear buffer
 extern void horizontalline(int x, int y); //draw horizontalline

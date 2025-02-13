@@ -2,16 +2,11 @@
  * RS232.h
  *
  * Created: 22/07/2022 17:03:35
- *  Author: Katharina Böhm-Klamt
+ *  Author: Katharina Bï¿½hm-Klamt
  */ 
 
 
 #define RS232_H_
-
-
-
-
-
 
 #include <avr/interrupt.h>
 

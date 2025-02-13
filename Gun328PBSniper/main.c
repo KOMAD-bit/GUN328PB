@@ -2,17 +2,13 @@
  * GunLight328PBSNIPER.c
  *
  * Created: 28.11.2022 13:44:48
- * Author : Katharina Böhm-Klamt
+ * Author : Katharina Bï¿½hm-Klamt
  */ 
-
-
-
-
-#include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <math.h>
+#include <avr/io.h>
 
 #include "i2cmaster.h"
 #include "LCD.h"
@@ -35,8 +31,6 @@ void magazinchangePIN(void);
  void init_Register(){
 cli();
 
-
-	
 	PORTB = 0x00;
 	DDRB  =0x04;
 	//PORTB |=(1<<PB1);
@@ -51,11 +45,12 @@ cli();
 	// PB2 = MOD_TXD -----------------^ | |
 	// PB1 = Trigger--------------------^ |
 	// PB0 = led7-------------------------^
-		
-		
-	  
+
+
+
 	 // Port C initialization
 	 PORTC= 0x00; //
+
 	 DDRC = 0x38; // Pins :  0 O 1 1 1 0 O O
 	 //                      7 6 5 4 3 2 1 0
 	 // PC7 = ---------------^ | | | | | | |
@@ -66,8 +61,8 @@ cli();
 	 // PC2 = -------------------------^ | |
 	 // PC1 = Magazin--------------------^ |
 	 // PC0 = Magazin y/n------------------^
-	 
-	 
+
+
 	 // Port D initialization
 	 PORTD=0x00;
 
@@ -81,19 +76,19 @@ cli();
 	 // PD2 = -------------------------^ | |
 	 // PD1 = TX USART Out---------------^ |
 	 // PD0 = RX USART In -----------------^
-	 
+
 
 	 PORTE=0x00;
 	 DDRE = 0x00;
 
-	 
 
-	 
+
+
 	 TCCR1B = (1<<WGM12)  |(1<<CS10); //
 	 TCCR1A |= (1<<COM1B0);
 
 	 OCR1A=230;			
-	
+
 	TCCR2B=0x03;
 	TCNT2 =0x00;
 	//	OCR2 =30;
@@ -106,7 +101,7 @@ cli();
 
 	soft_s_zeiten[1].ms_max = 20;
 	soft_s_zeiten[1].fasync = magazinchangePIN;
-	
+
 	soft_s_zeiten[2].ms_max = 99;
 	soft_s_zeiten[2].fasync = shot;
 
@@ -119,10 +114,10 @@ cli();
  UCSR0C=0x86;
  UBRR0H =BAUD_H;
  UBRR0L=BAUD_L;
-	 
+
 	 	SPCR0 = 0x00;
-	
-	 
+
+
 sei();
  }
  
@@ -271,7 +266,7 @@ void setup_i2c(){
 
 	i2c_write(0x80);
 	i2c_write(0x81);                   // Set Contrast 0x81
-	i2c_write(0xFF);					//je höher desto höher Kontrast
+	i2c_write(0xFF);					//je hï¿½her desto hï¿½her Kontrast
 	
 	// flips display
 	i2c_write(0xA1);                    // Segremap - 0xA1
@@ -450,7 +445,7 @@ restart:
 		}
 		else{magazin1=1; }
 		
-	if(batalertisr<baterievoltage) // batalert ´questioning
+	if(batalertisr<baterievoltage) // batalert ï¿½questioning
 	{
 		batalert();
 		if(magazin1==1){magazin(magazinnumber);}
@@ -586,8 +581,11 @@ restart:
 										if(magazin1==1){magazin(magazinnumber);}
 										energy=serial_in.val;
 										heart(serial_in.val);
-										if (munition) current_state = STATE_GAME;
-									}
+                                        if (munition)
+                                        {
+                                            current_state = STATE_GAME;
+                                        }
+                                    }
 									else
 									{
 										energy=0;

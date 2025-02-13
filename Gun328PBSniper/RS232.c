@@ -31,24 +31,26 @@ struct USART_buffer
 } rx_buffer = {{},0,1,2,3,0,0};
 
 // USART Receiver interrupt service routine
-ISR(USART0_RX_vect)
-{
-	uint8_t next = ( rx_buffer.ind_write+1 ) & RX_BUFFER_MASK;
-	if ( (UCSR0A & ( (1<<FE0 ) | (1<<UPE0 ) | (1<<DOR0) ) ) ==0 )
-	{
-		if (next == rx_buffer.ind_read)  // Buffer full  => overwrite first read_entry alte Daten gehen verloren !
-		{
-			rx_buffer.ind_read = rx_buffer.ind_read_1;		// alle anderen +1
-			rx_buffer.ind_read_1 = rx_buffer.ind_read_2;	// alle anderen +1
-			rx_buffer.ind_read_2 = rx_buffer.ind_read_3;	// alle anderen +1
-			rx_buffer.ind_read_3 = ( rx_buffer.ind_read_3+1)  & RX_BUFFER_MASK;
-			rx_buffer.cnt--;	// ein Wert weniger da anschliessend immer ein inc erfolgt
-		}
-		rx_buffer.data[rx_buffer.ind_write]=UDR0;
-		rx_buffer.ind_write = next;
-		rx_buffer.cnt ++;
-	}
-	else next = UDR0;  // skip byte on error - unbedingt auslesen, sonst h�ngt sich RS232 bei Error ewig in INT auf!		
+ISR(USART0_RX_vect) {
+    uint8_t next = (rx_buffer.ind_write + 1) & RX_BUFFER_MASK;
+
+    // Check for UART receive errors (framing, parity, overrun)
+    if (!(UCSR0A & ((1 << FE0) | (1 << UPE0) | (1 << DOR0)))) {
+        // Buffer full => overwrite first read_entry, old data is lost
+        if (next == rx_buffer.ind_read) {
+            rx_buffer.ind_read = rx_buffer.ind_read_1;
+            rx_buffer.ind_read_1 = rx_buffer.ind_read_2;
+            rx_buffer.ind_read_2 = rx_buffer.ind_read_3;
+            rx_buffer.ind_read_3 = (rx_buffer.ind_read_3 + 1) & RX_BUFFER_MASK;
+            rx_buffer.cnt--; // Decrement count as an increment follows
+        }
+        rx_buffer.data[rx_buffer.ind_write] = UDR0;
+        rx_buffer.ind_write = next;
+        rx_buffer.cnt++;
+    } else {
+        // Skip byte on error - must read to prevent RS232 from hanging in INT on error
+        (void)UDR0;
+    }
 }
 
 uint8_t RX_GetNext(uint8_t* in)
@@ -159,29 +161,32 @@ struct USART_buffer
 	#endif
 	
 	// USART Receiver interrupt service routine
-	ISR(USART0_RX_vect)
-	{
-		uint8_t next = ( rx_buffer.ind_write+1 ) & RX_BUFFER_MASK;
-		if ( (UCSR0A & ( (1<<FE0 ) | (1<<UPE0 ) | (1<<DOR0) ) ) ==0 )
-		{
-			if (next == rx_buffer.ind_read)  // Buffer full  => overwrite first read_entry alte Daten gehen verloren !
-			{
-				rx_buffer.ind_read = rx_buffer.ind_read_1;		// alle anderen +1
-				rx_buffer.ind_read_1 = rx_buffer.ind_read_2;	// alle anderen +1
-				rx_buffer.ind_read_2 = rx_buffer.ind_read_3;	// alle anderen +1
-				rx_buffer.ind_read_3 = rx_buffer.ind_read_4;	// alle anderen +1
-				rx_buffer.ind_read_4 = rx_buffer.ind_read_5;	// alle anderen +1
-				rx_buffer.ind_read_5 = rx_buffer.ind_read_6;	// alle anderen +1
-				rx_buffer.ind_read_6 = rx_buffer.ind_read_7;	// alle anderen +1
-				rx_buffer.ind_read_7 = ( rx_buffer.ind_read_7+1)  & RX_BUFFER_MASK;
-				rx_buffer.cnt--;	// ein Wert weniger da anschliessend immer ein inc erfolgt
-			}
-			rx_buffer.data[rx_buffer.ind_write]=UDR0;
-			rx_buffer.ind_write = next;
-			rx_buffer.cnt ++;
-		}
-		else next = UDR0;  
-	}
+ #include <avr/io.h>
+
+ // USART Receiver interrupt service routine
+ ISR(USART0_RX_vect)
+ {
+     uint8_t next = ( rx_buffer.ind_write+1 ) & RX_BUFFER_MASK;
+     if ( (UCSR0A & ( (1<<FE0) | (1<<UPE0) | (1<<DOR0) )) == 0 )
+     {
+         if (next == rx_buffer.ind_read)  // Buffer full  => overwrite first read_entry alte Daten gehen verloren !
+         {
+             rx_buffer.ind_read = rx_buffer.ind_read_1;		// alle anderen +1
+             rx_buffer.ind_read_1 = rx_buffer.ind_read_2;	// alle anderen +1
+             rx_buffer.ind_read_2 = rx_buffer.ind_read_3;	// alle anderen +1
+             rx_buffer.ind_read_3 = rx_buffer.ind_read_4;	// alle anderen +1
+             rx_buffer.ind_read_4 = rx_buffer.ind_read_5;	// alle anderen +1
+             rx_buffer.ind_read_5 = rx_buffer.ind_read_6;	// alle anderen +1
+             rx_buffer.ind_read_6 = rx_buffer.ind_read_7;	// alle anderen +1
+             rx_buffer.ind_read_7 = ( rx_buffer.ind_read_7+1)  & RX_BUFFER_MASK;
+             rx_buffer.cnt--;	// ein Wert weniger da anschliessend immer ein inc erfolgt
+         }
+         rx_buffer.data[rx_buffer.ind_write]=UDR0;
+         rx_buffer.ind_write = next;
+         rx_buffer.cnt ++;
+     }
+     else next = UDR0;  
+ }
 
 	uint8_t RX_GetNext(uint8_t* in)
 	{
@@ -347,28 +352,26 @@ void TX_SendCommand(uint8_t cmd, uint8_t id, uint8_t val)
 #endif
 
 #ifdef DEBUG_STUDIO
-void my_delay(uint16_t __ms)
-{
-}
+
 #else
 void my_delay(uint16_t __ms)
 {
-	uint16_t __count;
-	
-	uint16_t _ticks  = (uint16_t) (__ms);
-	while(_ticks)
-	{
-		//my_delay_loop_2(_count2);
-		__count = 3920;
-		__asm__ volatile (
-		"1: sbiw %0,1" "\n\t"
-		"brne 1b"
-		: "=w" (__count)
-		: "0" (__count)
-		);
-		_ticks --;
-	}
+    uint16_t __count;
+    uint16_t _ticks = __ms;  // Number of milliseconds to delay
+
+    while (_ticks)
+    {
+        // Set the counter for approximately 1 millisecond delay.
+        __count = 3920;
+        __asm__ volatile (
+            "1: sbiw %0, 1\n\t"  // Subtract 1 from __count
+            "brne 1b"           // Branch to label 1 if __count != 0
+			: "=r" (__count)
+            : "0" (__count)
+        );
+        _ticks--;
+    }
 }
-#endif 
+#endif
 
 
