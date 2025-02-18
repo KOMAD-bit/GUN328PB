@@ -6,13 +6,14 @@
  */ 
 
 #include <inttypes.h>
+#include <stddef.h> // Include standard definition header for size_t
 
 #ifndef LCD_H_
 #define LCD_H_
 
 
 
-extern void drawBufferPage(const uint16_t *buffp, uint8_t lcdPage, uint8_t colPosition, size_t endIndex, size_t startIndex); // draw one Bufferpage
+extern void drawBufferPage(const uint8_t *buffp, uint8_t lcdPage, uint8_t colPosition, size_t endIndex, size_t startIndex); // draw one Bufferpage
 extern void cleardisplay(); // clear Display
 extern void clearbuffer(int x, int y); // clear buffer
 extern void horizontalline(int x, int y); //draw horizontalline
